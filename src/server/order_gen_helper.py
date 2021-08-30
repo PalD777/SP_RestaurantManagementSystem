@@ -1,9 +1,13 @@
 import json
+
 def update_order(n):
+    '''Generate list of orders'''
     order = []
     for i in range(1, n+1):
         order.append([f'Order {i}', i])
     return order
+
+# TODO: Make sure order.json is retrieved from the correct directory
 with open('orders.json', 'w') as f:
     n = 5
     while True:

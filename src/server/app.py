@@ -42,6 +42,7 @@ class InnerLayout(GridLayout):
         '''
         Temporary code to use json to get orders.
         TODO
+        Make sure it get order.json from its own directory
         Later, will use MySQL to connect to the orders database to retrieve all orders which have
         the boolean has served false
         '''
