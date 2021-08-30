@@ -1,7 +1,7 @@
 import socket
 import ssl
-HOST = '10.30.164.55'
-PORT = 1234
+HOST = '<IP HERE>' # Retrieve IP as input when user starts app
+PORT = 9999
 # context = ssl.create_default_context()
 # context.load_verify_locations('cert.pem')
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
