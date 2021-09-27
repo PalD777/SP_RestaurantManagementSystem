@@ -14,112 +14,64 @@
             </div>
             <div class="row">
                 <div class="col-lg-12">
-                    <div class="row" id="tabs">
+                    <div class="row">
                         <div class="col-lg-12">
                             <section class='tabs-content'>
-                                <article id='tabs-1'>
+                                <form method="post" target="no_refresh">
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="row">
                                                 <div class="left-list">
+                                                    {% for item in cart[::2] %}
                                                     <div class="col-lg-12">
                                                         <div class="tab-item">
-                                                            <img src="{{url_for('static', filename='images/tab-item-01.png')}}" alt="">
-                                                            <h4>Crispy Fries</h4>
-                                                            <p>Potato wedges deep fried to a golden crispiness.</p>
+                                                            <img src="{{url_for('static', filename=item.image_url)}}" alt="">
+                                                            <h4>{{item.name}}</h4>
+                                                            <p>{{item.description}}</p>
                                                             <div class="price">
-                                                                <h6><input type='number' name='quantity' value=1 min=0 max=99></h6>
+                                                                <h6>${{item.price}}</h6>
+                                                            </div>
+                                                            <div class='main-white-button'>
+                                                                <h6>Qty :    <input type='number' name='{{item.id}}' value={{item.qty}} min=0 max=99></h6>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-lg-12">
-                                                        <div class="tab-item">
-                                                            <img src="{{url_for('static', filename='images/tab-item-02.png')}}" alt="">
-                                                            <h4>American Hamburger</h4>
-                                                            <p>American-styled patty sandwiched between ham and buns.</p>
-                                                            <div class="price">
-                                                                <h6><input type='number' name='quantity' value=1 min=0 max=99></h6>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-lg-12">
-                                                        <div class="tab-item">
-                                                            <img src="{{url_for('static', filename='images/tab-item-03.png')}}" alt="">
-                                                            <h4>Chocolate Fountain</h4>
-                                                            <p>Fluffy Marshmallow with dark chocolate fondue.</p>
-                                                            <div class="price">
-                                                                <h6><input type='number' name='quantity' value=1 min=0 max=99></h6>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    {% endfor %}
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-lg-6">
                                             <div class="row">
                                                 <div class="right-list">
+                                                    {% for item in cart[1::2] %}
                                                     <div class="col-lg-12">
                                                         <div class="tab-item">
-                                                            <img src="{{url_for('static', filename='images/tab-item-04.png')}}" alt="">
-                                                            <h4>Strawberry Cake</h4>
-                                                            <p>Soft cake with lush strawberry topping and premium cream</p>
+                                                            <img src="{{url_for('static', filename=item.image_url)}}" alt="">
+                                                            <h4>{{item.name}}</h4>
+                                                            <p>{{item.description}}</p>
                                                             <div class="price">
-                                                                <h6><input type='number' name='quantity' value=1 min=0 max=99></h6>
+                                                                <h6>${{item.price}}</h6>
+                                                            </div>
+                                                            <div class='main-white-button'>
+                                                                <h6>Qty :    <input type='number' name='{{item.id}}' value={{item.qty}} min=0 max=99></h6>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-lg-12">
-                                                        <div class="tab-item">
-                                                            <img src="{{url_for('static', filename='images/tab-item-05.png')}}" alt="">
-                                                            <h4>Rose Drink</h4>
-                                                            <p>Sweet rose flavoured exclusive drink</p>
-                                                            <div class="price">
-                                                                <h6><input type='number' name='quantity' value=1 min=0 max=99></h6>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-lg-12">
-                                                        <div class="tab-item">
-                                                            <img src="{{url_for('static', filename='images/tab-item-06.png')}}" alt="">
-                                                            <h4>Chicken Roast</h4>
-                                                            <p>Crisp and roasted chicken with barbeque sauce</p>
-                                                            <div class="price">
-                                                                <h6><input type='number' name='quantity' value=1 min=0 max=99></h6>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    {% endfor %}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </article>  
-                                <article id='tabs-2'>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="row">
-                                                <div class="left-list">
-                                                    <div class="col-lg-12">
-                                                        <div class="tab-item">
-                                                            <img src="{{url_for('static', filename='images/tab-item-04.png')}}" alt="">
-                                                            <h4>Italian spaghetti</h4>
-                                                            <p>Fine spaghetti with exotic herb and mayo topping.</p>
-                                                            <div class="price">
-                                                                <h6><input type='number' name='quantity' value=1 min=0 max=99></h6>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </article>  
                                  <div>
-                                    <a href = "/#top">
-                                        <button type = "button">Continue Shopping</button>
-                                    </a>
-                                    <button type="button" onclick="alert('Your order has been sent to the server!')">Order Now</button>
+                                    <div class="main-white-button scroll-to-section">
+                                        <a href = "/#top">
+                                            <button value='Save' name='cart'>Save and Continue Shopping</button>
+                                        </a>
+                                        <button value='Checkout' name='cart' onclick="alert('Your order has been sent to the server!')">Order Now</button>
+                                     </div>
                                 
                                  </div>
+                                </form>
                             </section>
                         </div>
                     </div>
