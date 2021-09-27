@@ -38,10 +38,10 @@ def cart():
         elif request.form['action'] == 'checkout':
             update_cart(request.form.items())
             print('Checking out with: ', session['cart'])
+            session['cart'] = {}
             # Server socket networking here
-        return ''
-    else:
-        return render_template("cart.html", cart=generate_cart(), total=find_total_cost())
+
+    return render_template("cart.html", cart=generate_cart(), total=find_total_cost())
 
 @app.route("/qr")
 def qr():
@@ -52,7 +52,7 @@ def qr():
     img.save('static/images/qr.png')
     return render_template('qr.html')
 
-# ---- HELPER FUNCTIONS ----
+# ---- HELPER FUNCTIONS ---- #
 def generate_cart():
     cart = []
     for item_id, qty in session['cart'].items():
@@ -76,6 +76,9 @@ def find_total_cost():
     return total
 
 def update_cart(data, mode='replace'):
+    if 'cart' not in session:
+        session['cart'] = {}
+
     for item_id, qty in data:
         if item_id == 'action': continue
         # Basic Input Validation
