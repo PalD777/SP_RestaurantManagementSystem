@@ -41,7 +41,7 @@ def cart():
             # Server socket networking here
         return ''
     else:
-        return render_template("cart.html", cart=generate_cart())
+        return render_template("cart.html", cart=generate_cart(), total=find_total_cost())
 
 @app.route("/qr")
 def qr():
@@ -68,6 +68,13 @@ def get_item_from_id(item_id):
     else:
         return None
 
+def find_total_cost():
+    total = 0
+    for item_id, qty in session['cart'].items():
+        price = get_item_from_id(item_id)['price']
+        total += price * qty
+    return total
+
 def update_cart(data, mode='replace'):
     for item_id, qty in data:
         if item_id == 'action': continue
@@ -88,4 +95,4 @@ def update_cart(data, mode='replace'):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True, use_evalex=False)
