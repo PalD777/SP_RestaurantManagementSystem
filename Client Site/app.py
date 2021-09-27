@@ -33,6 +33,22 @@ def home():
         print(session)
     return render_template("index.html", menu=menu)
 
+@app.route("/cart", methods=['GET', 'POST'])
+def cart():
+    # Key --> Name, Value --> Value
+    if request.method == 'POST':
+        print(list(request.form.values()))
+        qty, item_id = request.form.values()
+        if 'cart' not in session:
+            session['cart'] = {}
+        if not qty.isdigit or int(qty) <= 0:
+            print('Error!', qty)
+            return "Invalid Request\n<a href='/'>Go back to main page</a>", 400
+        qty = int(qty)
+        session['cart'][item_id] = session['cart'].get(item_id, 0) + qty
+        session.modified = True
+        print(session)
+    return render_template("cart.html", menu=menu)
 
 if __name__ == "__main__":
     app.run(debug=True)
