@@ -1,6 +1,7 @@
 import time
 import json
 import requests
+import qrcode
 from flask import Flask, jsonify, render_template, request, session
 
 app = Flask(__name__)
@@ -18,20 +19,23 @@ menu = [
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
-    # Key --> Name, Value --> Value
     if request.method == 'POST':
-        print(list(request.form.values()))
         qty, item_id = request.form.values()
+        # Initialise cart if not defined
         if 'cart' not in session:
             session['cart'] = {}
-        if not qty.isdigit or int(qty) <= 0:
-            print('Error!', qty)
-            return "Invalid Request\n<a href='/'>Go back to main page</a>", 400
-        qty = int(qty)
-        session['cart'][item_id] = session['cart'].get(item_id, 0) + qty
-        session.modified = True
-        print(session)
-    return render_template("index.html", menu=menu)
+        # Basic Input Validation
+        if not qty.isdigit or int(qty) < 0:
+            return """Invalid Request
+            <a href='/'>Go back to main page</a>""", 400    # 400 = BadRequest
+
+        new_qty = session['cart'].get(item_id, 0) + int(qty)
+        # Update Session cookie for the item
+        session['cart'][item_id] = new_qty
+        session.modified = True     # To tell flask that a mutable object in session was changed
+        return ''
+    else:
+        return render_template("index.html", menu=menu)
 
 @app.route("/cart", methods=['GET', 'POST'])
 def cart():
@@ -49,6 +53,16 @@ def cart():
         session.modified = True
         print(session)
     return render_template("cart.html", menu=menu)
+
+@app.route("/qr")
+def qr():
+    ip = requests.get('https://api.ipify.org').text
+    print(ip)
+    port = 5000
+    img = qrcode.make(f'http://{ip}:{port}')
+    img.save('static/images/qr.png')
+    return render_template('qr.html')
+
 
 if __name__ == "__main__":
     app.run(debug=True)
