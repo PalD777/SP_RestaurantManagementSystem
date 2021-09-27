@@ -21,42 +21,38 @@ menu = [
 def home():
     if request.method == 'POST':
         qty, item_id = request.form.values()
-        # Initialise cart if not defined
-        if 'cart' not in session:
-            session['cart'] = {}
-        # Basic Input Validation
-        if not qty.isdigit or int(qty) < 0:
-            return """Invalid Request
-            <a href='/'>Go back to main page</a>""", 400    # 400 = BadRequest
-
-        new_qty = session['cart'].get(item_id, 0) + int(qty)
-        # Update Session cookie for the item
-        session['cart'][item_id] = new_qty
-        session.modified = True     # To tell flask that a mutable object in session was changed
+        update_cart([(item_id, qty)], mode='add')
         return ''
     else:
         return render_template("index.html", menu=menu)
 
 @app.route("/cart", methods=['GET', 'POST'])
 def cart():
-    if request.method == 'POST':
-        qty, item_id = request.form.values()
-        # Initialise cart if not defined
-        if 'cart' not in session:
-            session['cart'] = {}
-        # Basic Input Validation
-        if not qty.isdigit or int(qty) < 0 or get_item_from_id(item_id) is None:
-            return """Invalid Request
-            <a href='/'>Go back to main page</a>""", 400    # 400 = BadRequest
+    # Initialise cart if not defined
+    if 'cart' not in session:
+        session['cart'] = {}
 
-        new_qty = session['cart'].get(item_id, 0) + int(qty)
-        # Update Session cookie for the item
-        session['cart'][item_id] = new_qty
-        session.modified = True     # To tell flask that a mutable object in session was changed
+    if request.method == 'POST':
+        if request.form['action'] == 'save':
+            update_cart(request.form.items())
+        elif request.form['action'] == 'checkout':
+            update_cart(request.form.items())
+            print('Checking out with: ', session['cart'])
+            # Server socket networking here
         return ''
     else:
         return render_template("cart.html", cart=generate_cart())
 
+@app.route("/qr")
+def qr():
+    ip = requests.get('https://api.ipify.org').text
+    print(ip)
+    port = 5000
+    img = qrcode.make(f'http://{ip}:{port}')
+    img.save('static/images/qr.png')
+    return render_template('qr.html')
+
+# ---- HELPER FUNCTIONS ----
 def generate_cart():
     cart = []
     for item_id, qty in session['cart'].items():
@@ -71,14 +67,24 @@ def get_item_from_id(item_id):
             return item
     else:
         return None
-@app.route("/qr")
-def qr():
-    ip = requests.get('https://api.ipify.org').text
-    print(ip)
-    port = 5000
-    img = qrcode.make(f'http://{ip}:{port}')
-    img.save('static/images/qr.png')
-    return render_template('qr.html')
+
+def update_cart(data, mode='replace'):
+    for item_id, qty in data:
+        if item_id == 'action': continue
+        # Basic Input Validation
+        if not qty.isdigit or int(qty) < 0 or get_item_from_id(item_id) is None:
+            return """Invalid Request
+            <a href='/'>Go back to main page</a>""", 400    # 400 = BadReques
+        if mode == 'add':
+            qty = session['cart'].get(item_id, 0) + int(qty)
+        else:
+            qty = int(qty)
+
+        if qty == 0:
+            del session['cart'][item_id]
+        else:
+            session['cart'][item_id] = qty
+        session.modified = True     # To tell flask that a mutable object in session was changed
 
 
 if __name__ == "__main__":
