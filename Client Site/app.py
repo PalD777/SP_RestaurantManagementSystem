@@ -16,6 +16,7 @@ menu = [
     {'id': 'A007', 'price':21, 'name': 'Italian spaghetti', 'description': 'Fine spaghetti with exotic herb and mayo topping.', 'image_url':'images/menu-item-04.jpg'},
 
 ]
+PORT = 5000
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
@@ -47,8 +48,7 @@ def cart():
 def qr():
     ip = requests.get('https://api.ipify.org').text
     print(ip)
-    port = 5000
-    img = qrcode.make(f'http://{ip}:{port}')
+    img = qrcode.make(f'http://{ip}:{PORT}')
     img.save('static/images/qr.png')
     return render_template('qr.html')
 
@@ -98,4 +98,4 @@ def update_cart(data, mode='replace'):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80, debug=True, use_evalex=False)
+    app.run(host='0.0.0.0', port=PORT, debug=True, use_evalex=False)
