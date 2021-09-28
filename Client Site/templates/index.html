@@ -102,7 +102,7 @@
                 <div class="owl-menu-item owl-carousel">
                     {% for item in menu %}
                     <div class="item">
-                        <div class='card card1' style="background-image: url('{{url_for('static', filename=item.image_url)}}');">
+                        <div class='card card1' style="background-image: url('{{url_for('static', filename='images/'+item.id+'.jpg')}}');">
                             <div class="price"><h6>${{item.price}}</h6></div>
                             <div class='info'>
                               <h1 class='title'>{{item.name}}</h1>

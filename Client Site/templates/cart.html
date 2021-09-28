@@ -25,7 +25,7 @@
                                                     {% for item in cart[::2] %}
                                                     <div class="col-lg-12">
                                                         <div class="tab-item">
-                                                            <img src="{{url_for('static', filename=item.image_url)}}" alt="">
+                                                            <img src="{{url_for('static', filename='images/'+item.id+'.jpg')}}" alt="">
                                                             <h4>{{item.name}}</h4>
                                                             <p>{{item.description}}</p>
                                                             <div class="price">
@@ -46,7 +46,7 @@
                                                     {% for item in cart[1::2] %}
                                                     <div class="col-lg-12">
                                                         <div class="tab-item">
-                                                            <img src="{{url_for('static', filename=item.image_url)}}" alt="">
+                                                            <img src="{{url_for('static', filename='images/'+item.id+'.jpg')}}" alt="">
                                                             <h4>{{item.name}}</h4>
                                                             <p>{{item.description}}</p>
                                                             <div class="price">
