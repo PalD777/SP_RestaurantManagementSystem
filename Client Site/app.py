@@ -76,6 +76,7 @@ def find_total_cost():
     return total
 
 def update_cart(data, mode='replace'):
+    '''Helper function to update the cart based on data passed'''
     if 'cart' not in session:
         session['cart'] = {}
 
