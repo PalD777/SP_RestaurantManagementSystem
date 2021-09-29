@@ -2,6 +2,7 @@ import time
 import json
 import requests
 import qrcode
+from pathlib import Path
 from flask import Flask, jsonify, render_template, request, session
 
 app = Flask(__name__)
@@ -31,13 +32,15 @@ def cart():
         elif request.form['action'] == 'checkout':
             update_cart(request.form.items())
             print('Checking out with: ', session['cart'])
+            with open(Path(__file__).parent / 'requests.bin', 'a') as f:
+                f.write(f'ORDER SENT {json.dumps(session["cart"])}\n')
             session['cart'] = {}
-            # Server socket networking here
 
     return render_template("cart.html", cart=generate_cart(), total=find_total_cost())
 
 @app.route("/qr")
 def qr():
+    # Add exception handling for no internet
     ip = requests.get('https://api.ipify.org').text
     print(ip)
     img = qrcode.make(f'http://{ip}:{PORT}')
@@ -46,7 +49,7 @@ def qr():
 
 # ---- HELPER FUNCTIONS ---- #
 def get_menu():
-    with open('menu.json') as menu_file:
+    with open(Path(__file__).parent / 'menu.json') as menu_file:
         return json.load(menu_file)
 
 def generate_cart():

@@ -1,17 +1,7 @@
 import socket
 import base64, json
 from pathlib import Path
-'''
-ORDER:
-Sends: ORDER SEND $TABLE_NO $ORDER_OBJ
-Recv: ORDER RECEIVED
-ORDER_OBJ: Serialised via JSON
-     {Name: Qty}
 
-
-For errors:
-$PROTOCOL ERROR $ERROR_CODE
-'''
 class Client:
     def __init__(self, host='127.0.0.1', port=9999, app_port=5000):
         self.HOST = host
@@ -88,7 +78,8 @@ class Client:
             return 400, None
 
     def handle_order(self, req):
-        if len(req) > 3 and req[1].upper() == b'SEND' and req[2].isdigit():
+        if len(req) > 2 and req[1].upper() == b'SEND':
+            req.insert(2, str(self.table).encode('utf-8'))
             resp = self.send(b' '.join(req)).split(b' ')
             resp_is_valid = len(resp) == 2 and resp[0].upper() == b'ORDER' and resp[1].upper() == b'RECEIVED'
             resp_is_error = len(resp) == 3 and resp[0].upper() == b'ORDER' and resp[1].upper() == b'ERROR' and resp[2].isdigit()
