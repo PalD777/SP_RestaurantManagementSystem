@@ -33,13 +33,13 @@ class Client:
                 s.connect((self.HOST, self.PORT))
                 print('Connected!')
                 s.sendall(msg)
-                return s.recv()
+                return s.recv(1024)
         except Exception as e:
             raise e
 
     def handle_ping(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
-            resp = send(b' '.join(req)).upper().split()
+            resp = self.send(b' '.join(req)).upper().split()
             resp_is_valid = resp[0] == b'PING' and resp[1] == b'REPLY' and resp[2] == b'TABLE' and resp[3].isdigit() and len(resp) == 4
             resp_is_error = resp[0] == b'PING' and resp[1] == b'ERROR' and resp[2].isdigit() and len(resp) == 3
 
@@ -59,7 +59,7 @@ class Client:
 
     def handle_menu(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
-            resp = send(b' '.join(req)).split(b' ')
+            resp = self.send(b' '.join(req)).split(b' ')
             resp_is_valid = resp[0].upper() == b'MENU' and resp[1].upper() == b'REPLY'
             resp_is_error = resp[0].upper() == b'MENU' and resp[1].upper() == b'ERROR' and resp[2].isdigit() and len(resp) == 3
 
@@ -88,8 +88,8 @@ class Client:
 
     def main(self):
         with open('requests.bin', 'w+b') as f:
-            handle_ping(b'PING REQUEST')
-            handle_menu(b'MENU REQUEST')
+            self.handle_ping(b'PING REQUEST'.split())
+            self.handle_menu(b'MENU REQUEST'.split())
 
             while True:
                 req = f.readline().strip().split()
