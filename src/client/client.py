@@ -29,13 +29,22 @@ class Client:
     def send(self, msg):
         print(msg)
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((self.HOST, self.PORT))
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.connect((self.HOST, self.PORT))
                 print('Connected!')
-                s.sendall(msg)
-                return s.recv(1024)
+                sock.sendall(msg)
+                return self.recvall(sock)
         except Exception as e:
             raise e
+
+    def recvall(self, sock, BUFF_SIZE=4096):
+        data = b''
+        while True:
+            part = sock.recv(BUFF_SIZE)
+            data += part
+            if len(part) < BUFF_SIZE: # if it has ended
+                break
+        return data
 
     def handle_ping(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
@@ -68,11 +77,13 @@ class Client:
             elif resp_is_valid:
                 try:
                     menu = json.loads(b' '.join(resp[2:]))
-                    
+                    # Menu = [{id:, name:, desc:, price:, img:(As base64)}]
+                    with open('menu.json', 'w') as menu_file:
+                        json.dump(menu, menu_file)
                     return 200, menu
                 except json.JSONDecodeError:
                     print("[!] Couldn't decode JSON")
-                    print(resp)
+                    print(b' '.join(resp))
                     return 502, None
             else:
                 print('[!] Invalid server response')
@@ -88,8 +99,9 @@ class Client:
 
     def main(self):
         with open('requests.bin', 'w+b') as f:
-            self.handle_ping(b'PING REQUEST'.split())
-            self.handle_menu(b'MENU REQUEST'.split())
+            print(self.handle_ping(b'PING REQUEST'.split()))
+            menu = self.handle_menu(b'MENU REQUEST'.split())
+            print(str(menu)[:80])
 
             while True:
                 req = f.readline().strip().split()
