@@ -5,7 +5,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
-from kivy.properties import StringProperty, ListProperty, NumericProperty
+from kivy.properties import StringProperty, NumericProperty, DictProperty
 from kivy.core.window import Window
 from kivy.clock import Clock
 from functools import partial
@@ -13,7 +13,7 @@ from functools import partial
 
 class InnerLayout(GridLayout):
     '''Contains all the app contents'''
-    orders = ListProperty()
+    orders = DictProperty()
     index = NumericProperty(0)
 
     def update(self, dt = 0):
@@ -23,7 +23,8 @@ class InnerLayout(GridLayout):
         Beautify Buttons
         '''
         self.orders = self.get_orders()
-        for order_id, details in self.orders[self.index:]:
+        print(self.orders)
+        for order_id, details in list(self.orders.items())[self.index:]:
             btn = Button(text = f'ORDER {order_id}',
                          font_size = 40,
                          background_color =[1, 0, 0, 3])
@@ -69,6 +70,8 @@ class Order_Details(FloatLayout):
     '''Layout for popup contents containing order information'''
     popup = None
     text1 = StringProperty()
+    text2 = StringProperty()
+    text3 = StringProperty()
     def dismiss(self):
         '''Callback for closing popup'''
         Order_Details.popup.dismiss()
@@ -81,7 +84,7 @@ class Order_Details(FloatLayout):
         self.text1 = f'Table Number: {details["table"]}'
         self.text2 = ''
         for item in details['items']:
-            self.text2 += f"{item['id']} {item['name']} {item['qty']} {item['price']}\n"
+            self.text2 += f"{item['id']:<5} {item['name']:<20} {item['qty']:>3} {item['price']:>3}\n"
         self.text3 = f'Total: ${details["total"]}'
 
 

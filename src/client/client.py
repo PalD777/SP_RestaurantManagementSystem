@@ -112,18 +112,20 @@ class Client:
             # Start Flask app here
             while True:
                 req = f.readline().strip().split(b' ')
-                if req == []:
+                if req == [b'']:
                     continue
+                print(req)
                 protcol = req[0].upper()
                 print(protcol)
                 if protcol == b'PING':
-                    handle_ping(req)
+                    self.handle_ping(req)
                 elif protcol == b'MENU':
-                    handle_menu(req)
+                    self.handle_menu(req)
                 elif protcol == b'ORDER':
-                    pass
+                    self.handle_order(req)
                 else:
                     print('[!] Unknown request protocol')
+                    print(req)
                     print(b' '.join(req))
 
 if __name__ == '__main__':

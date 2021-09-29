@@ -60,8 +60,9 @@ class Server:
     def handle_order(self, req):
         if len(req) > 3 and req[1].upper() == b'SEND' and req[2].isdigit():
             try:
-                table = req[2]
+                table = req[2].decode('utf-8')
                 order = json.loads(b' '.join(req[3:]))
+                print(order)
                 if not isinstance(order, dict) or len(order) == 0:
                     return b'ORDER ERROR 400'
                 ORDER_ID = self.parse_orders(table, order)
@@ -140,7 +141,8 @@ class Server:
         else:
             ORDER_ID = max(self.orders.keys()) + 1
         self.orders[ORDER_ID] = {'table':table, 'total':0, 'order_done': False, 'items':[]}
-        for item_id, qty in order:
+        print(order)
+        for item_id, qty in order.items():
             item = self.get_item_from_id(item_id)
             if not str(qty).isdigit() or item is None:
                 continue
@@ -151,6 +153,7 @@ class Server:
                 'qty': int(qty),
                 'price': item['price']
                 })
+            print(self.orders)
         return ORDER_ID
 
     def quit(self):
