@@ -15,6 +15,7 @@ class Server:
                     {'id': 'R001', 'price':19, 'name': 'Chicken Roast', 'desc': 'Crisp and roasted chicken with barbeque sauce'},
                     {'id': 'A007', 'price':21, 'name': 'Italian spaghetti', 'desc': 'Fine spaghetti with exotic herb and mayo topping.'},
                     ]
+        self.orders = {}
     
     def start(self, max_clients=128, timeout=10):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -33,16 +34,7 @@ class Server:
 
     def handle_ping(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
-            if self.addr not in self.tables:
-                if len(self.tables) == 0:
-                    TABLE = 1
-                else:
-                    TABLE = max(self.tables.keys()) + 1
-                self.tables[self.addr] = TABLE
-            else:
-                TABLE = self.tables[self.addr]
-
-            return f'PING REPLY TABLE {TABLE}'.encode('utf-8')
+            return f'PING REPLY TABLE {self.get_table()}'.encode('utf-8')
         else:
             print('[!] Invalid PING request')
             print(b' '.join(req))
@@ -50,12 +42,11 @@ class Server:
 
     def handle_menu(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
-            # data:image/jpeg;base64,
             for item in self.menu:
-                print(Path(__file__))
+                # Get all files with the same name as the id
                 file_paths = list(Path(__file__).parent.glob(f'images/{item["id"]}.*'))
                 if len(file_paths) == 0:
-                    return b'MENU ERROR 502'
+                    return b'MENU ERROR 502'    # No image found for a menu item
                 else:
                     file_path = file_paths[0]
                 item['img'] = self.base64_img(file_path)
@@ -67,7 +58,25 @@ class Server:
             return b'MENU ERROR 400'
 
     def handle_order(self, req):
-        return b'ORDER ERROR 501'
+        if len(req) > 3 and req[1].upper() == b'SEND' and req[2].isdigit():
+            try:
+                table = req[2]
+                order = json.loads(b' '.join(req[3:]))
+                if not isinstance(order, dict) or len(order) == 0:
+                    return b'ORDER ERROR 400'
+                ORDER_ID = self.parse_orders(table, order)
+                # Add to SQL here
+                with open(Path(__file__).parent / 'orders.json', 'w') as order_file:
+                    json.dump(self.orders, order_file)
+                return b'ORDER RECEIVED'
+            except json.JSONDecodeError:
+                print("[!] Couldn't decode JSON")
+                print(b' '.join(req))
+                return b'ORDER ERROR 400'
+        else:
+            print('[!] Invalid ORDER request')
+            print(b' '.join(req))
+            return b'ORDER ERROR 400'
 
     def handle_conn(self):
         while True:
@@ -105,6 +114,44 @@ class Server:
         else:
             suffix = file_path.suffix
         return f'data:image/{suffix[1:]};base64,' + base64.b64encode(img).decode('utf-8')
+
+    def get_table(self):
+        if self.addr not in self.tables:
+            if len(self.tables) == 0:
+                TABLE = 1
+            else:
+                TABLE = max(self.tables.keys()) + 1
+            self.tables[self.addr] = TABLE
+        else:
+            TABLE = self.tables[self.addr]
+        return TABLE
+
+    def get_item_from_id(self, item_id):
+        for item in self.menu:
+            if item['id'] == item_id:
+                return item
+        else:
+            return None
+
+    def parse_orders(self, table, order):
+        # {order_id<int>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
+        if len(self.orders) == 0:
+            ORDER_ID = 1
+        else:
+            ORDER_ID = max(self.orders.keys()) + 1
+        self.orders[ORDER_ID] = {'table':table, 'total':0, 'order_done': False, 'items':[]}
+        for item_id, qty in order:
+            item = self.get_item_from_id(item_id)
+            if not str(qty).isdigit() or item is None:
+                continue
+            self.orders[ORDER_ID]['total'] += item['price'] * int(qty)
+            self.orders[ORDER_ID]["items"].append({
+                'id': item_id,
+                'name': item['name'],
+                'qty': int(qty),
+                'price': item['price']
+                })
+        return ORDER_ID
 
     def quit(self):
         self.sock.close()

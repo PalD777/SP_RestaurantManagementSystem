@@ -1,14 +1,7 @@
 import socket
 import base64, json
+from pathlib import Path
 '''
-
-
-MENU:
-Sends: MENU REQUEST
-Recv: MENU REPLY $MENU_OBJ
-MENU_OBJ: Serialise via JSON or pickle [loaded from SQL DB]
-    {Id:..., Name:..., Img:..., Desc:..., Price:...}
-
 ORDER:
 Sends: ORDER SEND $TABLE_NO $ORDER_OBJ
 Recv: ORDER RECEIVED
@@ -70,7 +63,7 @@ class Client:
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             resp = self.send(b' '.join(req)).split(b' ')
             resp_is_valid = resp[0].upper() == b'MENU' and resp[1].upper() == b'REPLY'
-            resp_is_error = resp[0].upper() == b'MENU' and resp[1].upper() == b'ERROR' and resp[2].isdigit() and len(resp) == 3
+            resp_is_error = len(resp) == 3 and resp[0].upper() == b'MENU' and resp[1].upper() == b'ERROR' and resp[2].isdigit()
 
             if resp_is_error:
                 return int(resp[2]), None
@@ -78,7 +71,7 @@ class Client:
                 try:
                     menu = json.loads(b' '.join(resp[2:]))
                     # Menu = [{id:, name:, desc:, price:, img:(As base64)}]
-                    with open('menu.json', 'w') as menu_file:
+                    with open(Path(__file__).parent / 'menu.json', 'w') as menu_file:
                         json.dump(menu, menu_file)
                     return 200, menu
                 except json.JSONDecodeError:
@@ -95,16 +88,30 @@ class Client:
             return 400, None
 
     def handle_order(self, req):
-        pass
+        if len(req) > 3 and req[1].upper() == b'SEND' and req[2].isdigit():
+            resp = self.send(b' '.join(req)).split(b' ')
+            resp_is_valid = len(resp) == 2 and resp[0].upper() == b'ORDER' and resp[1].upper() == b'RECEIVED'
+            resp_is_error = len(resp) == 3 and resp[0].upper() == b'ORDER' and resp[1].upper() == b'ERROR' and resp[2].isdigit()
+
+            if resp_is_error:
+                return int(resp[2]), None
+            elif not resp_is_valid:
+                print('[!] Invalid server response')
+                print(b' '.join(resp))
+                return 502, None
+        else:
+            print('[!] Invalid ORDER request')
+            print(b' '.join(req))
+            return 400, None
 
     def main(self):
-        with open('requests.bin', 'w+b') as f:
+        with open(Path(__file__).parent / 'requests.bin', 'w+b') as f:
             print(self.handle_ping(b'PING REQUEST'.split()))
             menu = self.handle_menu(b'MENU REQUEST'.split())
             print(str(menu)[:80])
-
+            # Start Flask app here
             while True:
-                req = f.readline().strip().split()
+                req = f.readline().strip().split(b' ')
                 if req == []:
                     continue
                 protcol = req[0].upper()
@@ -112,7 +119,7 @@ class Client:
                 if protcol == b'PING':
                     handle_ping(req)
                 elif protcol == b'MENU':
-                    pass
+                    handle_menu(req)
                 elif protcol == b'ORDER':
                     pass
                 else:

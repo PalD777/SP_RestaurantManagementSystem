@@ -23,16 +23,16 @@ class InnerLayout(GridLayout):
         Beautify Buttons
         '''
         self.orders = self.get_orders()
-        for item in self.orders[self.index:]:
-            btn = Button(text = item[0],
+        for order_id, details in self.orders[self.index:]:
+            btn = Button(text = f'ORDER {order_id}',
                          font_size = 40,
                          background_color =[1, 0, 0, 3])
             btn2 = Button(background_normal = 'cancel.png',
                           size_hint_x = None,
                           size = (144, 144))
 
-            btn.bind(on_release=partial(show_popup, item[1]))
-            btn2.bind(on_release=partial(self.remove, item, btn))
+            btn.bind(on_release=partial(show_popup, details))
+            btn2.bind(on_release=partial(self.remove, details, btn))
 
             self.add_widget(btn)
             self.add_widget(btn2)
@@ -47,13 +47,14 @@ class InnerLayout(GridLayout):
         the boolean has served false
         '''
         import json
+                        # Orders = {order_id<int>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
         try:
             with open('orders.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             with open('orders.json', 'w') as f:
-                json.dump([], f)
-            return []
+                json.dump({}, f)
+            return {}
 
     def remove(self, item, btn, exitbtn):
         '''
@@ -72,12 +73,16 @@ class Order_Details(FloatLayout):
         '''Callback for closing popup'''
         Order_Details.popup.dismiss()
 
-    def generate_text(self, bill_id):
+    def generate_text(self, details):
         '''
         TODO
         Retrieve order information and format and display it
         '''
-        self.text1 = f'ORDER ID IS {bill_id}'
+        self.text1 = f'Table Number: {details["table"]}'
+        self.text2 = ''
+        for item in details['items']:
+            self.text2 += f"{item['id']} {item['name']} {item['qty']} {item['price']}\n"
+        self.text3 = f'Total: ${details["total"]}'
 
 
 class RestaurantServerApp(App):    
