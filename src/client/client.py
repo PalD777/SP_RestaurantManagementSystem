@@ -40,8 +40,8 @@ class Client:
     def handle_ping(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             resp = self.send(b' '.join(req)).upper().split()
-            resp_is_valid = resp[0] == b'PING' and resp[1] == b'REPLY' and resp[2] == b'TABLE' and resp[3].isdigit() and len(resp) == 4
-            resp_is_error = resp[0] == b'PING' and resp[1] == b'ERROR' and resp[2].isdigit() and len(resp) == 3
+            resp_is_valid = len(resp) == 4 and resp[0] == b'PING' and resp[1] == b'REPLY' and resp[2] == b'TABLE' and resp[3].isdigit()
+            resp_is_error = len(resp) == 3 and resp[0] == b'PING' and resp[1] == b'ERROR' and resp[2].isdigit()
 
             if resp_is_error:
                 return int(resp[2]), None
