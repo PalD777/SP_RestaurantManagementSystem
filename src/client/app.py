@@ -33,7 +33,7 @@ def cart():
             update_cart(request.form.items())
             print('Checking out with: ', session['cart'])
             with open(Path(__file__).parent / 'requests.bin', 'a') as f:
-                f.write(f'ORDER SENT {json.dumps(session["cart"])}\n')
+                f.write(f'ORDER SEND {json.dumps(session["cart"])}\n')
             session['cart'] = {}
 
     return render_template("cart.html", cart=generate_cart(), total=find_total_cost())

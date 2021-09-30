@@ -14,7 +14,7 @@ from functools import partial
 class InnerLayout(GridLayout):
     '''Contains all the app contents'''
     orders = DictProperty()
-    index = NumericProperty(0)
+    curr_order = NumericProperty(0)
 
     def update(self, dt = 0):
         '''
@@ -24,7 +24,11 @@ class InnerLayout(GridLayout):
         '''
         self.orders = self.get_orders()
         print(self.orders)
-        for order_id, details in list(self.orders.items())[self.index:]:
+        for order_id, details in list(self.orders.items()):
+            if details['order_done'] or int(order_id) <= self.curr_order:
+                continue
+            else:
+                self.curr_order = int(order_id)
             btn = Button(text = f'ORDER {order_id}',
                          font_size = 40,
                          background_color =[1, 0, 0, 3])
@@ -37,7 +41,6 @@ class InnerLayout(GridLayout):
 
             self.add_widget(btn)
             self.add_widget(btn2)
-            self.index += 1
     
     def get_orders(self):
         '''
@@ -48,7 +51,7 @@ class InnerLayout(GridLayout):
         the boolean has served false
         '''
         import json
-                        # Orders = {order_id<int>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
+        # Orders = {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
         try:
             with open('orders.json', 'r') as f:
                 return json.load(f)
@@ -82,9 +85,9 @@ class Order_Details(FloatLayout):
         Retrieve order information and format and display it
         '''
         self.text1 = f'Table Number: {details["table"]}'
-        self.text2 = ''
+        self.text2 = f"{'ID':<5} {'Item Name':<20} {'Qty':<3} {'Price':<6}\n"
         for item in details['items']:
-            self.text2 += f"{item['id']:<5} {item['name']:<20} {item['qty']:>3} {item['price']:>3}\n"
+            self.text2 += f"{item['id']:<5} {item['name']:<20} {item['qty']:>3} ${item['price']:<5}\n"
         self.text3 = f'Total: ${details["total"]}'
 
 

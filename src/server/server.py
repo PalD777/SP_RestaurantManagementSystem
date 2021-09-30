@@ -15,7 +15,7 @@ class Server:
                     {'id': 'R001', 'price':19, 'name': 'Chicken Roast', 'desc': 'Crisp and roasted chicken with barbeque sauce'},
                     {'id': 'A007', 'price':21, 'name': 'Italian spaghetti', 'desc': 'Fine spaghetti with exotic herb and mayo topping.'},
                     ]
-        self.orders = {}
+        self.orders = self.get_orders()
     
     def start(self, max_clients=128, timeout=10):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -134,12 +134,33 @@ class Server:
         else:
             return None
 
+    @staticmethod
+    def get_orders():
+        '''
+        Temporary code to use json to get orders.
+        TODO
+        Make sure it get order.json from its own directory
+        Later, will use MySQL to connect to the orders database to retrieve all orders which have
+        the boolean has served false
+        When MySQL, just need this to find highest ORDER_ID (optional: that hasn't been served - would need another primary key in that case. UID generator?)
+        '''
+        import json
+        # Orders = {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
+        try:
+            with open('orders.json', 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            with open('orders.json', 'w') as f:
+                json.dump({}, f)
+            return {}
+
     def parse_orders(self, table, order):
-        # {order_id<int>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
+        # {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
         if len(self.orders) == 0:
             ORDER_ID = 1
         else:
-            ORDER_ID = max(self.orders.keys()) + 1
+            ORDER_ID = max(map(lambda x: int(x), self.orders.keys())) + 1
+        ORDER_ID = str(ORDER_ID)
         self.orders[ORDER_ID] = {'table':table, 'total':0, 'order_done': False, 'items':[]}
         print(order)
         for item_id, qty in order.items():
