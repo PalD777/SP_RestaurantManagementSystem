@@ -14,7 +14,7 @@
 	  }
 	});
 	
-	$('.input-group.date').datepicker({format: "dd.mm.yyyy"});
+	// $('.input-group.date').datepicker({format: "dd.mm.yyyy"});
 	
 
 	$('.filters ul li').click(function(){
@@ -27,13 +27,13 @@
 	  })
 	});
 
-	var $grid = $(".grid").isotope({
-	  itemSelector: ".all",
-	  percentPosition: true,
-	  masonry: {
-	    columnWidth: ".all"
-	  }
-	})
+	// var $grid = $(".grid").isotope({
+	//   itemSelector: ".all",
+	//   percentPosition: true,
+	//   masonry: {
+	//     columnWidth: ".all"
+	//   }
+	// })
 
 	$(".Modern-Slider").slick({
 	    autoplay:true,
@@ -73,9 +73,9 @@
 	  });
 
 
-	$(function() {
-        $("#tabs").tabs();
-    });
+	// $(function() {
+    //     $("#tabs").tabs();
+    // });
 
 
 	$('.owl-menu-item').owlCarousel({
@@ -104,7 +104,7 @@
 
 
 	// Scroll animation init
-	window.sr = new scrollReveal();
+	// window.sr = new scrollReveal();
 	
 
 	// Menu Dropdown Toggle
