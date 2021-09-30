@@ -9,7 +9,7 @@ from kivy.properties import StringProperty, NumericProperty, DictProperty
 from kivy.core.window import Window
 from kivy.clock import Clock
 from functools import partial
-
+from pathlib import Path
 
 class InnerLayout(GridLayout):
     '''Contains all the app contents'''
@@ -53,10 +53,10 @@ class InnerLayout(GridLayout):
         import json
         # Orders = {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
         try:
-            with open('orders.json', 'r') as f:
+            with open(Path(__file__).parent / 'orders.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
-            with open('orders.json', 'w') as f:
+            with open(Path(__file__).parent / 'orders.json', 'w') as f:
                 json.dump({}, f)
             return {}
 
