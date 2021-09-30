@@ -3,21 +3,26 @@
     auto_dismiss: False
     Label:
         text: self.parent.text1
-        size_hint: .6,.2
-        pos_hint: {"x":0.2,"top":1}
+        size: self.texture_size
+        x: root.center_x - self.width/2
+        y: 0.95 * root.top - self.height/2
         font_name: "RobotoMono-Regular"
     Label:
         text: self.parent.text2
-        size_hint: .6,.2
-        pos_hint: {"x":0.2,"top":0.9}
+        size: self.texture_size
+        valign: 'top'
+        x: root.center_x - self.width/2
+        y: 1.3 * root.center_y - self.height/2
         font_name: "RobotoMono-Regular"
     Label:
         text: self.parent.text3
-        size_hint: .6,.2
-        pos_hint: {"x":0.2,"top":0.5}
+        size: self.texture_size
+        x: root.center_x - self.width/2
+        y: 0.4 * root.top - self.height/2
         font_name: "RobotoMono-Regular"
     Button:
         text:"Close"
         size_hint:0.8,0.2
-        pos_hint:{"x":0.1,"y":0.1}
+        x: root.center_x - self.width/2
+        y: 0.2 * root.top - self.height/2
         on_release: self.parent.dismiss()
