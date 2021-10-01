@@ -23,8 +23,9 @@ class InnerLayout(GridLayout):
         Beautify Buttons
         '''
         self.orders = self.get_orders()
-        print(self.orders)
-        for order_id, details in list(self.orders.items()):
+        orders = sorted(filter(lambda x: str(x[0]).isdigit(), self.orders.items()), key=lambda x: int(x[0]))
+        for order_id, details in orders:
+            # When using SQL later, remove order_done verification from here as it will be handled in query
             if details['order_done'] or int(order_id) <= self.curr_order:
                 continue
             else:
@@ -37,7 +38,7 @@ class InnerLayout(GridLayout):
                           size = (144, 144))
 
             btn.bind(on_release=partial(show_popup, details))
-            btn2.bind(on_release=partial(self.remove, details, btn))
+            btn2.bind(on_release=partial(self.remove, order_id, btn))
 
             self.add_widget(btn)
             self.add_widget(btn2)

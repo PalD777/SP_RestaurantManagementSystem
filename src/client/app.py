@@ -32,9 +32,10 @@ def cart():
             if out is not None:
                 return out
         elif request.form['action'] == 'checkout':
-            update_cart(request.form.items())
+            out = update_cart(request.form.items())
             if out is not None:
                 return out
+            
             print('Checking out with: ', session['cart'])
             with open(Path(__file__).parent / 'requests.bin', 'a') as f:
                 f.write(f'ORDER SEND {json.dumps(session["cart"])}\n')

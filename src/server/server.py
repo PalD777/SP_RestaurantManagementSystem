@@ -148,6 +148,7 @@ class Server:
         # Orders = {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
         try:
             with open(Path(__file__).parent / 'orders.json', 'r') as f:
+                print('[*] Orders loaded')
                 return json.load(f)
         except FileNotFoundError:
             with open(Path(__file__).parent / 'orders.json', 'w') as f:
