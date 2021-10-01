@@ -1,7 +1,7 @@
 .vscode/
 venv/
 css backup/
-Client Site/static/images/qr.png
+src/client/static/images/qr.png
 src/client/requests.bin
 src/client/menu.json
 src/server/orders.json

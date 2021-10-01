@@ -28,9 +28,13 @@ def cart():
 
     if request.method == 'POST':
         if request.form['action'] == 'save':
-            update_cart(request.form.items())
+            out = update_cart(request.form.items())
+            if out is not None:
+                return out
         elif request.form['action'] == 'checkout':
             update_cart(request.form.items())
+            if out is not None:
+                return out
             print('Checking out with: ', session['cart'])
             with open(Path(__file__).parent / 'requests.bin', 'a') as f:
                 f.write(f'ORDER SEND {json.dumps(session["cart"])}\n')
@@ -40,13 +44,15 @@ def cart():
 
 @app.route("/qr")
 def qr():
-    # Add exception handling for no internet
-    ip = requests.get('https://api.ipify.org').text
-    print(ip)
-    img = qrcode.make(f'http://{ip}:{PORT}')
-    img.save('static/images/qr.png')
-    return render_template('qr.html')
-
+    try:
+        ip = requests.get('https://api.ipify.org').text
+        print(ip)
+        img = qrcode.make(f'http://{ip}:{PORT}')
+        img.save('static/images/qr.png')
+        return render_template('qr.html')
+    except requests.exceptions.ConnectionError:
+        return """<h1>Internet Not Available</h1>
+        <a href='/'>Go back to main page</a>""", 500 
 # ---- HELPER FUNCTIONS ---- #
 def get_menu():
     with open(Path(__file__).parent / 'menu.json') as menu_file:
@@ -84,8 +90,8 @@ def update_cart(data, mode='replace'):
         if item_id == 'action': continue
         # Basic Input Validation
         if not qty.isdigit or int(qty) < 0 or get_item_from_id(item_id) is None:
-            return """Invalid Request
-            <a href='/'>Go back to main page</a>""", 400    # 400 = BadReques
+            return """<h1>Invalid Request</h1>
+            <a href='/'>Go back to main page</a>""", 400    # 400 = BadRequest
         if mode == 'add':
             qty = session['cart'].get(item_id, 0) + int(qty)
         else:
@@ -96,6 +102,7 @@ def update_cart(data, mode='replace'):
         else:
             session['cart'][item_id] = qty
         session.modified = True     # To tell flask that a mutable object in session was changed
+        return None
 
 
 if __name__ == "__main__":
