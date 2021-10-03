@@ -6,15 +6,6 @@ class Server:
         self.HOST = ''
         self.PORT = port
         self.tables = {}
-        self.menu = [
-                    {'id': 'A001', 'price':4, 'name': 'Crispy Fries', 'desc': 'Potato wedges deep fried to a golden crispiness.'},
-                    {'id': 'A002', 'price':6, 'name': 'American Hamburger', 'desc': 'American-styled patty sandwiched between ham and buns.'},
-                    {'id': 'B003', 'price':11, 'name': 'Chocolate Fountain', 'desc': 'Fluffy Marshmallow with dark chocolate fondue.'},
-                    {'id': 'B001', 'price':28, 'name': 'Strawberry Cake', 'desc': 'Soft cake with lush strawberry topping and premium cream'},
-                    {'id': 'F003', 'price':7, 'name': 'Rose Drink', 'desc': 'Sweet rose flavoured exclusive drink'},
-                    {'id': 'R001', 'price':19, 'name': 'Chicken Roast', 'desc': 'Crisp and roasted chicken with barbeque sauce'},
-                    {'id': 'A007', 'price':21, 'name': 'Italian spaghetti', 'desc': 'Fine spaghetti with exotic herb and mayo topping.'},
-                    ]
         self.orders = self.get_orders()
     
     def start(self, max_clients=128, timeout=10):
@@ -42,16 +33,8 @@ class Server:
 
     def handle_menu(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
-            for item in self.menu:
-                # Get all files with the same name as the id
-                file_paths = list(Path(__file__).parent.glob(f'images/{item["id"]}.*'))
-                if len(file_paths) == 0:
-                    return b'MENU ERROR 502'    # No image found for a menu item
-                else:
-                    file_path = file_paths[0]
-                item['img'] = self.base64_img(file_path)
-                
-            return f'MENU REPLY {json.dumps(self.menu)}'.encode('utf-8')
+            menu = self.get_menu()
+            return f'MENU REPLY {json.dumps(menu)}'.encode('utf-8')
         else:
             print('[!] Invalid MENU request')
             print(b' '.join(req))
@@ -107,14 +90,9 @@ class Server:
                 break
 
     @staticmethod
-    def base64_img(file_path):
-        with open(file_path, mode='rb') as image_file:
-            img = image_file.read()
-        if file_path.suffix in ['.jpeg', '.jpg', '.jfif', '.pjpeg', '.pjp']:
-            suffix = '.jpeg'
-        else:
-            suffix = file_path.suffix
-        return f'data:image/{suffix[1:]};base64,' + base64.b64encode(img).decode('utf-8')
+    def get_menu():
+        '''should be list of dictionary preferably'''
+        pass
 
     def get_table(self):
         if self.addr not in self.tables:
