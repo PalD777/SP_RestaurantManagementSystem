@@ -1,13 +1,18 @@
 import socket
-import base64, json
+import base64
+import json
 from pathlib import Path
 from apscheduler.schedulers.background import BackgroundScheduler
+import argparse
+from threading import Thread
+from waitress import serve
+from app import app
 
 class Client:
-    def __init__(self, host='127.0.0.1', port=9999, app_port=5000):
+    def __init__(self, host='127.0.0.1', port=9999, flask_app=None):
         self.HOST = host
         self.PORT = port
-        self.APP_PORT = app_port
+        self.flask_app = flask_app
         self.table = None
     
     def send(self, msg):
@@ -118,7 +123,7 @@ class Client:
 
             self.error_warning(*self.handle_ping(b'PING REQUEST'.split()))
             self.error_warning(*self.handle_menu(b'MENU REQUEST'.split()))
-            # Start Flask app here
+
             while True:
                 req = f.readline().strip().split(b' ')
                 if req == [b'']:
@@ -135,7 +140,16 @@ class Client:
                     print('[!] Unknown request protocol')
                     print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
                 
+def serve_app(app, port):
+    serve(app, port=port, threads=10)
 
 if __name__ == '__main__':
-    client = Client()
+    parser = argparse.ArgumentParser(description='Run the client for S&P Restaurant App')
+    parser.add_argument('-s', '--sip', '--server-ip', default='127.0.0.1', help='Specifies Server IP Address', dest='ip')
+    parser.add_argument('-p', '--sp', '--s-port', '--server-port', default='9999', type=int, help='Specifies Server port', dest='server_port')
+    parser.add_argument('-f', '--fp', '--f-port', '--flask-ip', default='5000', type=int, help='Specifies Flask App port', dest='flask_port')
+    args = parser.parse_args()
+    flask_app = Thread(target=serve_app, args=(app, args.flask_port), daemon=True)
+    flask_app.start()
+    client = Client(args.ip, args.server_port, flask_app)
     client.main()

@@ -36,7 +36,6 @@ def cart():
             if out is not None:
                 return out
             
-            print('Checking out with: ', session['cart'])
             with open(Path(__file__).parent / 'requests.bin', 'a') as f:
                 f.write(f'ORDER SEND {json.dumps(session["cart"])}\n')
             session['cart'] = {}
@@ -48,7 +47,6 @@ def qr():
     '''Note: Won't work if device on same network'''
     try:
         ip = requests.get('https://api.ipify.org').text
-        print(ip)
         img = qrcode.make(f'http://{ip}:{PORT}')
         img.save(Path(__file__).parent / 'static' / 'images' / 'qr.png')
         return render_template('qr.html')
@@ -108,4 +106,4 @@ def update_cart(data, mode='replace'):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=PORT, debug=True, use_evalex=False)
+    app.run()
