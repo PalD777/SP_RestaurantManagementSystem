@@ -10,6 +10,8 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from functools import partial
 from pathlib import Path
+import mysql.connector
+import json
 
 class InnerLayout(GridLayout):
     '''Contains all the app contents'''
@@ -26,10 +28,7 @@ class InnerLayout(GridLayout):
         orders = sorted(filter(lambda x: str(x[0]).isdigit(), self.orders.items()), key=lambda x: int(x[0]))
         for order_id, details in orders:
             # When using SQL later, remove order_done verification from here as it will be handled in query
-            if details['order_done'] or int(order_id) <= self.curr_order:
-                continue
-            else:
-                self.curr_order = int(order_id)
+            self.curr_order = int(order_id)
             btn = Button(text = f'ORDER {order_id}',
                          font_size = 40,
                          background_color =[1, 0, 0, 3])
@@ -51,15 +50,19 @@ class InnerLayout(GridLayout):
         Later, will use MySQL to connect to the orders database to retrieve all orders which have
         the boolean has served false
         '''
-        import json
-        # Orders = {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
-        try:
-            with open(Path(__file__).parent / 'orders.json', 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            with open(Path(__file__).parent / 'orders.json', 'w') as f:
-                json.dump({}, f)
-            return {}
+        mydb = mysql.connector.connect(
+                host="localhost",
+                user="server",
+                password="SP12345",
+                database = "restaurant"
+            )
+        mycursor = mydb.cursor()
+        mycursor.execute("SELECT * FROM orders WHERE order_done = 0 AND id > %s", (self.curr_order,))
+        myresult = mycursor.fetchall()
+        orders = {}
+        for item in myresult:
+            orders[item[0]] = {'id':item[0], 'table_num':item[1], 'total':float(item[2]),'items':json.loads(item[4])}
+        return orders
 
     def remove(self, item, btn, exitbtn):
         '''
@@ -67,6 +70,15 @@ class InnerLayout(GridLayout):
         TODO
         Update MySQL database to change has_served to true if pressed
         '''
+        mydb = mysql.connector.connect(
+                host="localhost",
+                user="server",
+                password="SP12345",
+                database = "restaurant"
+            )
+        mycursor = mydb.cursor()
+        mycursor.execute("UPDATE orders SET order_done = TRUE WHERE id = %s", (item,))
+        mydb.commit()
         self.remove_widget(btn)
         self.remove_widget(exitbtn)
 
@@ -85,7 +97,7 @@ class Order_Details(FloatLayout):
         TODO
         Retrieve order information and format and display it
         '''
-        self.text1 = f'Table Number: {details["table"]}'
+        self.text1 = f'Table Number: {details["table_num"]}'
         self.text2 = f"{'ID':<5} {'Item Name':<20} {'Qty':<3} {'Price':<6}\n"
         for item in details['items']:
             self.text2 += f"{item['id']:<5} {item['name']:<20} {item['qty']:>3} ${item['price']:<5}\n"

@@ -28,11 +28,11 @@ def cart():
 
     if request.method == 'POST':
         if request.form['action'] == 'save':
-            out = update_cart(request.form.items())
+            out = update_cart(list(request.form.items()))
             if out is not None:
                 return out
         elif request.form['action'] == 'checkout':
-            out = update_cart(request.form.items())
+            out = update_cart(list(request.form.items()))
             if out is not None:
                 return out
             
@@ -103,7 +103,7 @@ def update_cart(data, mode='replace'):
         else:
             session['cart'][item_id] = qty
         session.modified = True     # To tell flask that a mutable object in session was changed
-        return None
+    return None
 
 
 if __name__ == "__main__":

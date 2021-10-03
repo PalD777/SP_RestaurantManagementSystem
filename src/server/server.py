@@ -7,7 +7,7 @@ class Server:
         self.HOST = ''
         self.PORT = port
         self.tables = {}
-        self.orders = self.get_orders()
+        self.get_menu()
     
     def start(self, max_clients=128, timeout=10):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,11 +49,10 @@ class Server:
                 print(order)
                 if not isinstance(order, dict) or len(order) == 0:
                     return b'ORDER ERROR 400'
-                ORDER_ID = self.parse_orders(table, order)
-                # Add to SQL here
-                with open(Path(__file__).parent / 'orders.json', 'w') as order_file:
-                    json.dump(self.orders, order_file)
-                return b'ORDER RECEIVED'
+                if self.parse_orders(table, order) == 200:
+                    return b'ORDER RECEIVED'
+                else:
+                    return b'ORDER ERROR 500'
             except json.JSONDecodeError:
                 print("[!] Couldn't decode JSON")
                 print(b' '.join(req))
@@ -90,8 +89,7 @@ class Server:
             except KeyboardInterrupt:
                 break
 
-    @staticmethod
-    def get_menu():
+    def get_menu(self):
         '''should be list of dictionary preferably'''
         mydb = mysql.connector.connect(
                 host="localhost",
@@ -102,10 +100,10 @@ class Server:
         mycursor = mydb.cursor()
         mycursor.execute("SELECT * FROM menu")
         myresult = mycursor.fetchall()
-        menu = []
+        self.menu = []
         for item in myresult:
-            menu.append({'item':item[0],'name':item[1],'desc':item[2],'price':float(item[3]),'img':item[4]})
-        return menu
+            self.menu.append({'id':item[0],'name':item[1],'desc':item[2],'price':float(item[3]),'img':item[4]})
+        return self.menu
     
 
     def get_table(self):
@@ -126,49 +124,34 @@ class Server:
         else:
             return None
 
-    @staticmethod
-    def get_orders():
-        '''
-        Temporary code to use json to get orders.
-        TODO
-        Make sure it get order.json from its own directory
-        Later, will use MySQL to connect to the orders database to retrieve all orders which have
-        the boolean has served false
-        When MySQL, just need this to find highest ORDER_ID (optional: that hasn't been served - would need another primary key in that case. UID generator?)
-        '''
-        import json
-        # Orders = {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
-        try:
-            with open(Path(__file__).parent / 'orders.json', 'r') as f:
-                print('[*] Orders loaded')
-                return json.load(f)
-        except FileNotFoundError:
-            with open(Path(__file__).parent / 'orders.json', 'w') as f:
-                json.dump({}, f)
-            return {}
-
     def parse_orders(self, table, order):
-        # {order_id<str>:{table<int>:, total<float>:, order_done<bool>:, items:[{id<str>:, name<str>:, qty<int>:, price<float>:}]}}
-        if len(self.orders) == 0:
-            ORDER_ID = 1
-        else:
-            ORDER_ID = max(map(lambda x: int(x), self.orders.keys())) + 1
-        ORDER_ID = str(ORDER_ID)
-        self.orders[ORDER_ID] = {'table':table, 'total':0, 'order_done': False, 'items':[]}
-        print(order)
+        mydb = mysql.connector.connect(
+                host="localhost",
+                user="server",
+                password="SP12345",
+                database = "restaurant"
+            )
+        mycursor = mydb.cursor()
+        sql = "INSERT INTO orders (table_num, total, items) VALUES (%s, %s, %s)"
+        print('inserting')
+        total = 0
+        items = []
         for item_id, qty in order.items():
             item = self.get_item_from_id(item_id)
             if not str(qty).isdigit() or item is None:
                 continue
-            self.orders[ORDER_ID]['total'] += item['price'] * int(qty)
-            self.orders[ORDER_ID]["items"].append({
+            total += item['price'] * int(qty)
+            items.append({
                 'id': item_id,
                 'name': item['name'],
                 'qty': int(qty),
                 'price': item['price']
                 })
-            print(self.orders)
-        return ORDER_ID
+        print(items)
+        print(total)
+        mycursor.execute(sql, (table, total, json.dumps(items)))
+        mydb.commit()
+        return 200
 
     def quit(self):
         self.sock.close()

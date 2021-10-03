@@ -42,19 +42,18 @@ def main():
                 database = "restaurant"
             )
     mycursor = mydb.cursor()
-    # add stuff to menu table
+    # Clear all existing entries
     sql1 = "TRUNCATE TABLE menu"
     mycursor.execute(sql1)
     mydb.commit()
-
+    # Add the new entries from the menu variable
     sql = "INSERT INTO menu (id, item, descr, price, img) VALUES (%s, %s, %s, %s, %s)"
     val = []
     for item in menu:
-        val.append((item['id'],item['name'],item['desc'],item['price'],item['img']))
+        val.append((item['id'], item['name'], item['desc'], item['price'], item['img']))
     mycursor.executemany(sql, val)
 
     mydb.commit()
-    print(mydb)
 
 
 if __name__ == "__main__":
