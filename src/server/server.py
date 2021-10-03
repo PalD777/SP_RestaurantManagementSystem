@@ -1,6 +1,7 @@
 import socket
 import base64, json
 from pathlib import Path
+import mysql.connector
 class Server:
     def __init__(self, port=9999):
         self.HOST = ''
@@ -92,7 +93,20 @@ class Server:
     @staticmethod
     def get_menu():
         '''should be list of dictionary preferably'''
-        pass
+        mydb = mysql.connector.connect(
+                host="localhost",
+                user="server",
+                password="SP12345",
+                database = "restaurant"
+            )
+        mycursor = mydb.cursor()
+        mycursor.execute("SELECT * FROM menu")
+        myresult = mycursor.fetchall()
+        menu = []
+        for item in myresult:
+            menu.append({'item':item[0],'name':item[1],'desc':item[2],'price':float(item[3]),'img':item[4]})
+        return menu
+    
 
     def get_table(self):
         if self.addr not in self.tables:
