@@ -10,6 +10,7 @@ app.secret_key = 'Secret Key 123'
 
 PORT = 5000
 
+
 @app.route("/", methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
@@ -19,6 +20,7 @@ def home():
     else:
         menu = get_menu()
         return render_template("index.html", menu=menu)
+
 
 @app.route("/cart", methods=['GET', 'POST'])
 def cart():
@@ -35,12 +37,13 @@ def cart():
             out = update_cart(list(request.form.items()))
             if out is not None:
                 return out
-            
+
             with open(Path(__file__).parent / 'requests.bin', 'a') as f:
                 f.write(f'ORDER SEND {json.dumps(session["cart"])}\n')
             session['cart'] = {}
 
     return render_template("cart.html", cart=generate_cart(), total=find_total_cost())
+
 
 @app.route("/qr")
 def qr():
@@ -52,11 +55,14 @@ def qr():
         return render_template('qr.html')
     except requests.exceptions.ConnectionError:
         return """<h1>Internet Not Available</h1>
-        <a href='/'>Go back to main page</a>""", 500 
+        <a href='/'>Go back to main page</a>""", 500
 # ---- HELPER FUNCTIONS ---- #
+
+
 def get_menu():
     with open(Path(__file__).parent / 'menu.json') as menu_file:
         return json.load(menu_file)
+
 
 def generate_cart():
     cart = []
@@ -66,6 +72,7 @@ def generate_cart():
         cart.append(item)
     return cart
 
+
 def get_item_from_id(item_id):
     menu = get_menu()
     for item in menu:
@@ -74,6 +81,7 @@ def get_item_from_id(item_id):
     else:
         return None
 
+
 def find_total_cost():
     total = 0
     for item_id, qty in session['cart'].items():
@@ -81,13 +89,15 @@ def find_total_cost():
         total += price * qty
     return total
 
+
 def update_cart(data, mode='replace'):
     '''Helper function to update the cart based on data passed'''
     if 'cart' not in session:
         session['cart'] = {}
 
     for item_id, qty in data:
-        if item_id == 'action': continue
+        if item_id == 'action':
+            continue
         # Basic Input Validation
         if not qty.isdigit or int(qty) < 0 or get_item_from_id(item_id) is None:
             return """<h1>Invalid Request</h1>

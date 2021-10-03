@@ -8,13 +8,14 @@ from threading import Thread
 from waitress import serve
 from app import app
 
+
 class Client:
     def __init__(self, host='127.0.0.1', port=9999, flask_app=None):
         self.HOST = host
         self.PORT = port
         self.flask_app = flask_app
         self.table = None
-    
+
     def send(self, msg):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -33,15 +34,17 @@ class Client:
         while True:
             part = sock.recv(BUFF_SIZE)
             data += part
-            if len(part) < BUFF_SIZE: # if it has ended
+            if len(part) < BUFF_SIZE:  # if it has ended
                 break
         return data
 
     def handle_ping(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             resp = self.send(b' '.join(req)).upper().split()
-            resp_is_valid = len(resp) == 4 and resp[0] == b'PING' and resp[1] == b'REPLY' and resp[2] == b'TABLE' and resp[3].isdigit()
-            resp_is_error = len(resp) == 3 and resp[0] == b'PING' and resp[1] == b'ERROR' and resp[2].isdigit()
+            resp_is_valid = len(
+                resp) == 4 and resp[0] == b'PING' and resp[1] == b'REPLY' and resp[2] == b'TABLE' and resp[3].isdigit()
+            resp_is_error = len(
+                resp) == 3 and resp[0] == b'PING' and resp[1] == b'ERROR' and resp[2].isdigit()
 
             if resp_is_error:
                 return int(resp[2]), None
@@ -60,8 +63,10 @@ class Client:
     def handle_menu(self, req):
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             resp = self.send(b' '.join(req)).split(b' ')
-            resp_is_valid = resp[0].upper() == b'MENU' and resp[1].upper() == b'REPLY'
-            resp_is_error = len(resp) == 3 and resp[0].upper() == b'MENU' and resp[1].upper() == b'ERROR' and resp[2].isdigit()
+            resp_is_valid = resp[0].upper(
+            ) == b'MENU' and resp[1].upper() == b'REPLY'
+            resp_is_error = len(resp) == 3 and resp[0].upper(
+            ) == b'MENU' and resp[1].upper() == b'ERROR' and resp[2].isdigit()
 
             if resp_is_error:
                 return int(resp[2]), None
@@ -89,8 +94,10 @@ class Client:
         if len(req) > 2 and req[1].upper() == b'SEND':
             req.insert(2, str(self.table).encode('utf-8'))
             resp = self.send(b' '.join(req)).split(b' ')
-            resp_is_valid = len(resp) == 2 and resp[0].upper() == b'ORDER' and resp[1].upper() == b'RECEIVED'
-            resp_is_error = len(resp) == 3 and resp[0].upper() == b'ORDER' and resp[1].upper() == b'ERROR' and resp[2].isdigit()
+            resp_is_valid = len(resp) == 2 and resp[0].upper(
+            ) == b'ORDER' and resp[1].upper() == b'RECEIVED'
+            resp_is_error = len(resp) == 3 and resp[0].upper(
+            ) == b'ORDER' and resp[1].upper() == b'ERROR' and resp[2].isdigit()
 
             if resp_is_error:
                 return int(resp[2]), None
@@ -139,17 +146,24 @@ class Client:
                 else:
                     print('[!] Unknown request protocol')
                     print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
-                
+
+
 def serve_app(app, port):
     serve(app, port=port, threads=10)
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Run the client for S&P Restaurant App')
-    parser.add_argument('-s', '--sip', '--server-ip', default='127.0.0.1', help='Specifies Server IP Address', dest='ip')
-    parser.add_argument('-p', '--sp', '--s-port', '--server-port', default='9999', type=int, help='Specifies Server port', dest='server_port')
-    parser.add_argument('-f', '--fp', '--f-port', '--flask-ip', default='5000', type=int, help='Specifies Flask App port', dest='flask_port')
+    parser = argparse.ArgumentParser(
+        description='Run the client for S&P Restaurant App')
+    parser.add_argument('-s', '--sip', '--server-ip', default='127.0.0.1',
+                        help='Specifies Server IP Address', dest='ip')
+    parser.add_argument('-p', '--sp', '--s-port', '--server-port', default='9999',
+                        type=int, help='Specifies Server port', dest='server_port')
+    parser.add_argument('-f', '--fp', '--f-port', '--flask-ip', default='5000',
+                        type=int, help='Specifies Flask App port', dest='flask_port')
     args = parser.parse_args()
-    flask_app = Thread(target=serve_app, args=(app, args.flask_port), daemon=True)
+    flask_app = Thread(target=serve_app, args=(
+        app, args.flask_port), daemon=True)
     flask_app.start()
     client = Client(args.ip, args.server_port, flask_app)
     client.main()

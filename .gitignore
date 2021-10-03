@@ -6,3 +6,4 @@ src/client/requests.bin
 src/client/menu.json
 src/server/orders.json
 src/client/__pycache__
+src/server/__pycache__
