@@ -29,7 +29,7 @@ class Server:
             return f'PING REPLY TABLE {self.get_table()}'.encode('utf-8')
         else:
             print('[!] Invalid PING request')
-            print(b' '.join(req))
+            print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
             return b'PING ERROR 400'
 
     def handle_menu(self, req):
@@ -38,7 +38,7 @@ class Server:
             return f'MENU REPLY {json.dumps(menu)}'.encode('utf-8')
         else:
             print('[!] Invalid MENU request')
-            print(b' '.join(req))
+            print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
             return b'MENU ERROR 400'
 
     def handle_order(self, req):
@@ -46,7 +46,6 @@ class Server:
             try:
                 table = req[2].decode('utf-8')
                 order = json.loads(b' '.join(req[3:]))
-                print(order)
                 if not isinstance(order, dict) or len(order) == 0:
                     return b'ORDER ERROR 400'
                 if self.parse_orders(table, order) == 200:
@@ -55,11 +54,11 @@ class Server:
                     return b'ORDER ERROR 500'
             except json.JSONDecodeError:
                 print("[!] Couldn't decode JSON")
-                print(b' '.join(req))
+                print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
                 return b'ORDER ERROR 400'
         else:
             print('[!] Invalid ORDER request')
-            print(b' '.join(req))
+            print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
             return b'ORDER ERROR 400'
 
     def handle_conn(self):
@@ -67,7 +66,7 @@ class Server:
             try:
                 self.conn, addr = self.sock.accept()
                 self.addr = addr[0]
-                print(self.addr)
+                print(f"[*] Connected to {self.addr}")
                 with self.conn:
                     req = self.conn.recv(2048).strip().split(b' ')
                     if len(req) == 0:
@@ -81,8 +80,6 @@ class Server:
                         resp = self.handle_order(req)
                     else:
                         self.conn.sendall(b'PROTOCOL ERROR 400')
-                    print(req)
-                    print(resp[:80])
                     self.conn.sendall(resp)
             except socket.timeout:
                 continue
@@ -133,7 +130,6 @@ class Server:
             )
         mycursor = mydb.cursor()
         sql = "INSERT INTO orders (table_num, total, items) VALUES (%s, %s, %s)"
-        print('inserting')
         total = 0
         items = []
         for item_id, qty in order.items():
@@ -147,8 +143,6 @@ class Server:
                 'qty': int(qty),
                 'price': item['price']
                 })
-        print(items)
-        print(total)
         mycursor.execute(sql, (table, total, json.dumps(items)))
         mydb.commit()
         return 200

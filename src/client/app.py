@@ -45,6 +45,7 @@ def cart():
 
 @app.route("/qr")
 def qr():
+    '''Note: Won't work if device on same network'''
     try:
         ip = requests.get('https://api.ipify.org').text
         print(ip)

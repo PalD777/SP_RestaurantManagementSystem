@@ -1,6 +1,7 @@
 import socket
 import base64, json
 from pathlib import Path
+from apscheduler.schedulers.background import BackgroundScheduler
 
 class Client:
     def __init__(self, host='127.0.0.1', port=9999, app_port=5000):
@@ -10,13 +11,15 @@ class Client:
         self.table = None
     
     def send(self, msg):
-        print(msg)
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((self.HOST, self.PORT))
-                print('Connected!')
+                print('[*] Connection Established!')
                 sock.sendall(msg)
                 return self.recvall(sock)
+        except ConnectionRefusedError:
+            protocol = msg.strip().split(b' ')[0].upper()
+            return protocol + b' ERROR 503'
         except Exception as e:
             raise e
 
@@ -42,11 +45,11 @@ class Client:
                 return 200, self.table
             else:
                 print('[!] Invalid server response')
-                print(b' '.join(resp))
+                print(f"[!] Response: {b' '.join(resp).decode('utf-8')}")
                 return 502, None
         else:
             print('[!] Invalid PING request')
-            print(b' '.join(req))
+            print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
             return 400, None
 
     def handle_menu(self, req):
@@ -66,15 +69,15 @@ class Client:
                     return 200, menu
                 except json.JSONDecodeError:
                     print("[!] Couldn't decode JSON")
-                    print(b' '.join(resp))
+                    print(f"[!] Response: {b' '.join(resp).decode('utf-8')}")
                     return 502, None
             else:
                 print('[!] Invalid server response')
-                print(b' '.join(resp))
+                print(f"[!] Response: {b' '.join(resp).decode('utf-8')}")
                 return 502, None
         else:
             print('[!] Invalid MENU request')
-            print(b' '.join(req))
+            print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
             return 400, None
 
     def handle_order(self, req):
@@ -88,36 +91,50 @@ class Client:
                 return int(resp[2]), None
             elif not resp_is_valid:
                 print('[!] Invalid server response')
-                print(b' '.join(resp))
+                print(f"[!] Response: {b' '.join(resp).decode('utf-8')}")
                 return 502, None
+            else:
+                return 200, None
         else:
             print('[!] Invalid ORDER request')
-            print(b' '.join(req))
+            print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
             return 400, None
+
+    def update_menu(self):
+        print('[*] Updating menu')
+        self.handle_menu(b'MENU REQUEST'.split())
+
+    @staticmethod
+    def error_warning(status, data):
+        if status != 200:
+            print(f"[!] ERROR - Encounted status {status}")
+        return data
 
     def main(self):
         with open(Path(__file__).parent / 'requests.bin', 'w+b') as f:
-            print(self.handle_ping(b'PING REQUEST'.split()))
-            menu = self.handle_menu(b'MENU REQUEST'.split())
-            print(str(menu)[:80])
+            scheduler = BackgroundScheduler()
+            scheduler.add_job(self.update_menu, 'interval', minutes=2)
+            scheduler.start()
+
+            self.error_warning(*self.handle_ping(b'PING REQUEST'.split()))
+            self.error_warning(*self.handle_menu(b'MENU REQUEST'.split()))
             # Start Flask app here
             while True:
                 req = f.readline().strip().split(b' ')
                 if req == [b'']:
                     continue
-                print(req)
                 protcol = req[0].upper()
-                print(protcol)
+                print(f'[*] Sending {protcol.decode("utf-8")} request')
                 if protcol == b'PING':
-                    self.handle_ping(req)
+                    self.error_warning(*self.handle_ping(req))
                 elif protcol == b'MENU':
-                    self.handle_menu(req)
+                    self.error_warning(*self.handle_menu(req))
                 elif protcol == b'ORDER':
-                    self.handle_order(req)
+                    self.error_warning(*self.handle_order(req))
                 else:
                     print('[!] Unknown request protocol')
-                    print(req)
-                    print(b' '.join(req))
+                    print(f"[!] Request: {b' '.join(req).decode('utf-8')}")
+                
 
 if __name__ == '__main__':
     client = Client()
