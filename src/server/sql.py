@@ -4,7 +4,7 @@ import base64
 
 
 menu = [
-        {'id': 'A001', 'price':4, 'name': 'Crispy Fries', 'desc': 'Potato wedges deep fried to a golden crispiness.'},
+        {'id': 'A001', 'price':4, 'name': 'Crispy Fries', 'desc': ''},
         {'id': 'A002', 'price':6, 'name': 'American Hamburger', 'desc': 'American-styled patty sandwiched between ham and buns.'},
         {'id': 'B003', 'price':11, 'name': 'Chocolate Fountain', 'desc': 'Fluffy Marshmallow with dark chocolate fondue.'},
         {'id': 'B001', 'price':28, 'name': 'Strawberry Cake', 'desc': 'Soft cake with lush strawberry topping and premium cream'},
@@ -43,4 +43,19 @@ def main():
             )
     mycursor = mydb.cursor()
     # add stuff to menu table
+    sql1 = "TRUNCATE TABLE menu"
+    mycursor.execute(sql1)
+    mydb.commit()
+
+    sql = "INSERT INTO menu (id, item, descr, price, img) VALUES (%s, %s, %s, %s, %s)"
+    val = []
+    for item in menu:
+        val.append((item['id'],item['name'],item['desc'],item['price'],item['img']))
+    mycursor.executemany(sql, val)
+
+    mydb.commit()
     print(mydb)
+
+
+if __name__ == "__main__":
+    main()
