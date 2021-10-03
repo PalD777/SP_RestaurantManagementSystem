@@ -49,7 +49,7 @@ def qr():
         ip = requests.get('https://api.ipify.org').text
         print(ip)
         img = qrcode.make(f'http://{ip}:{PORT}')
-        img.save('static/images/qr.png')
+        img.save(Path(__file__).parent / 'static' / 'images' / 'qr.png')
         return render_template('qr.html')
     except requests.exceptions.ConnectionError:
         return """<h1>Internet Not Available</h1>
