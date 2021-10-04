@@ -8,14 +8,17 @@ import mysql.connector
 
 
 class Server:
-    def __init__(self, port=9999, ui_app=None):
+    '''Class for handling all connections and request parsing'''
+
+    def __init__(self, port=9999):
+        '''Initialises values'''
         self.HOST = ''
         self.PORT = port
         self.tables = {}
         self.get_menu()
-        self.ui_app = ui_app
 
     def listen(self, max_clients=128, timeout=10):
+        '''Starts listening at provided port'''
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.HOST, self.PORT))
         self.sock.listen(max_clients)
@@ -24,6 +27,7 @@ class Server:
 
     @staticmethod
     def get_ip():
+        '''Gets external IP for the device'''
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         IP = s.getsockname()[0]
@@ -31,6 +35,7 @@ class Server:
         return IP
 
     def handle_ping(self, req):
+        '''Parses and responds to PING requests'''
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             return f'PING REPLY TABLE {self.get_table()}'.encode('utf-8')
         else:
@@ -39,6 +44,7 @@ class Server:
             return b'PING ERROR 400'
 
     def handle_menu(self, req):
+        '''Parses and responds to MENU requests'''
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             menu = self.get_menu()
             return f'MENU REPLY {json.dumps(menu)}'.encode('utf-8')
@@ -48,6 +54,7 @@ class Server:
             return b'MENU ERROR 400'
 
     def handle_order(self, req):
+        '''Parses and responds to ORDER requests'''
         if len(req) > 3 and req[1].upper() == b'SEND' and req[2].isdigit():
             try:
                 table = req[2].decode('utf-8')
@@ -68,6 +75,7 @@ class Server:
             return b'ORDER ERROR 400'
 
     def handle_conn(self):
+        '''Handles connections from client'''
         while True:
             try:
                 self.conn, addr = self.sock.accept()
@@ -93,7 +101,7 @@ class Server:
                 break
 
     def get_menu(self):
-        '''should be list of dictionary preferably'''
+        '''Fetches menu from MySQL database'''
         mydb = mysql.connector.connect(
             host="localhost",
             user="server",
@@ -110,6 +118,7 @@ class Server:
         return self.menu
 
     def get_table(self):
+        '''Fetches Table Number for the client IP Address'''
         if self.addr not in self.tables:
             if len(self.tables) == 0:
                 TABLE = 1
@@ -121,6 +130,7 @@ class Server:
         return TABLE
 
     def get_item_from_id(self, item_id):
+        '''Fetches an item given an Item ID'''
         for item in self.menu:
             if item['id'] == item_id:
                 return item
@@ -128,6 +138,7 @@ class Server:
             return None
 
     def parse_orders(self, table, order):
+        '''Parses and adds orders to MySQL Database'''
         mydb = mysql.connector.connect(
             host="localhost",
             user="server",
@@ -154,24 +165,33 @@ class Server:
         return 200
 
     def quit(self):
+        '''Closes the socket'''
         self.sock.close()
 
 
-def start_server():
-    server = Server()
+def start_server(port):
+    '''Starts running the server'''
+    server = Server(port)
     server.listen()
-    server.handle_conn()
-    server.quit()
+    try:
+        server.handle_conn()
+    except Exception as e:
+        server.quit()
+        raise e
 
 
 if __name__ == '__main__':
+    # Adds command line flags for UI and port
     parser = argparse.ArgumentParser(
         description='Run the server for S&P Restaurant App')
     parser.add_argument('-u', '--ui', '--show-ui', action='store_true',
                         help='Specifies whether to show UI', dest='ui')
+    parser.add_argument('-p', '--port', default='9999',
+                        type=int, help='Specifies Server port', dest='port')
     args = parser.parse_args()
     if args.ui:
-        server = Thread(target=start_server, daemon=True)
+        # Runs the server in a background thread if need to use Kivy UI
+        server = Thread(target=start_server, args=(args.port,), daemon=True)
         server.start()
         import os
         os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
@@ -179,4 +199,5 @@ if __name__ == '__main__':
         from app import RestaurantServerApp
         RestaurantServerApp().run()
     else:
-        start_server()
+        # Runs the server
+        start_server(args.port)

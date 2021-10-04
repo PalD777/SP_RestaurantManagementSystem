@@ -21,16 +21,15 @@ class InnerLayout(GridLayout):
 
     def update(self, dt=0):
         '''
-        Keep the list of items updated
-        TODO
-        Beautify Buttons
+        Generates the list of items and keeps it updated
         '''
         self.orders = self.get_orders()
+        # Make sure all Order ID are numeric
         orders = sorted(filter(lambda x: str(x[0]).isdigit(
         ), self.orders.items()), key=lambda x: int(x[0]))
         for order_id, details in orders:
-            # When using SQL later, remove order_done verification from here as it will be handled in query
             self.curr_order = int(order_id)
+            # Add buttons for the item and connect them to their function
             btn = Button(text=f'ORDER {order_id}',
                          font_size=40,
                          background_color=[1, 0, 0, 3])
@@ -46,11 +45,7 @@ class InnerLayout(GridLayout):
 
     def get_orders(self):
         '''
-        Temporary code to use json to get orders.
-        TODO
-        Make sure it get order.json from its own directory
-        Later, will use MySQL to connect to the orders database to retrieve all orders which have
-        the boolean has served false
+        Uses MySQL to connect to the orders database to retrieve all new orders and parses them
         '''
         mydb = mysql.connector.connect(
             host="localhost",
@@ -70,7 +65,7 @@ class InnerLayout(GridLayout):
 
     def remove(self, item, btn, exitbtn):
         '''
-        Callback function to delete a row on pressing cancel button
+        Callback function to delete a row on pressing cancel button and marking it in SQL
         '''
         mydb = mysql.connector.connect(
             host="localhost",
@@ -99,8 +94,7 @@ class Order_Details(FloatLayout):
 
     def generate_text(self, details):
         '''
-        TODO
-        Retrieve order information and format and display it
+        Generates text to display order information
         '''
         self.text1 = f'Table Number: {details["table_num"]}'
         self.text2 = f"{'ID':<5} {'Item Name':<20} {'Qty':<3} {'Price':<6}\n"
