@@ -91,7 +91,7 @@ SOFTWARE. -->
 
 ![Product Name Screen Shot][product-screenshot]
 
-S&P Restaurant Management System aims to provide easy access between the customers and the restaurant.Customers can access a Flask page to order dishes which is then sent to the server via sockets. The server has an option to display the orders in a UI, allowing easy and efficient access. Each table has a separate client device which the customers of that table can access. The menu is stored in a database on the server which is dynamically refreshed for clients, preventing data inconsistency. The orders are also stored in MySQL, enabling external data analysis.
+S&P Restaurant Management System aims to provide easy access between the customers and the restaurant. Customers can access a Flask page to order dishes which is then sent to the server via sockets. The server has an option to display the orders in a UI, allowing easy and efficient access. Each table has a separate client device which the customers of that table can access. The menu is stored in a database on the server which is dynamically refreshed for clients, preventing data inconsistency. The orders are also stored in MySQL, enabling external data analysis.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -123,8 +123,8 @@ Download and install the latest version of [MySQL](https://dev.mysql.com/downloa
 Create a schema `restaurant` and make sure the user that you are using to access it has `SELECT`, 
 `INSERT`, `UPDATE`, `DROP`
 * After setting up the schema, run these query in it.
-  ```sql
-  CREATE TABLE menu (id VARCHAR(255), item TEXT, descr MEDIUMTEXT, price DECIMAL(10,3), img LONGTEXT)
+  ```mysql
+  CREATE TABLE menu (id VARCHAR(10), item TEXT, descr MEDIUMTEXT, price DECIMAL(10,3), img LONGTEXT)
   CREATE TABLE orders (id INT, table_num INT, total DECIMAL(10,3), order_done TINYINT, items TEXT)
   ```
 ### Installation
