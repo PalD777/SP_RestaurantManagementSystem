@@ -101,6 +101,8 @@ S&P Restaurant Management System aims to provide easy access between the custome
 
 * [Flask](https://flask.palletsprojects.com/en/2.0.x/)
 * [Kivy](https://kivy.org)
+* [Waitress](https://pypi.org/project/waitress/)
+* [QRCode](https://pypi.org/project/qrcode/)
 * [MySQL](https://www.mysql.com/)
 * [Owl Carousel](https://owlcarousel2.github.io/OwlCarousel2/)
 * [Bootstrap](https://getbootstrap.com)
@@ -173,7 +175,7 @@ Create a schema `restaurant` and make sure the user that you are using to access
     ```
 * To use the sql_helper:
     ```
-    python3 src/server/sql_helper.py
+    python3 src/server/sql_helper.py modification_target
     positional arguments:
       modification_target   Specifies what to modify. Possible values: menu, orders, both
                             menu => updates the menu
