@@ -80,7 +80,6 @@ SOFTWARE. -->
     <li><a href="#usage">Usage</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
@@ -90,9 +89,9 @@ SOFTWARE. -->
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+![Product Name Screen Shot][product-screenshot]
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `PalD777`, `SP_RestaurantManagementSystem`, `twitter_handle`, `linkedin_username`, `email`, `email_client`, `project_title`, `project_description`
+S&P Restaurant Management System aims to provide easy access between the customers and the restaurant.Customers can access a Flask page to order dishes which is then sent to the server via sockets. The server has an option to display the orders in a UI, allowing easy and efficient access. Each table has a separate client device which the customers of that table can access. The menu is stored in a database on the server which is dynamically refreshed for clients, preventing data inconsistency. The orders are also stored in MySQL, enabling external data analysis.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -114,8 +113,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+To get a local copy of S&P Restaurant Management System up and running follow these steps.
 
 ### Prerequisites
 
