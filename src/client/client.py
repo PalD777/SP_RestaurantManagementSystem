@@ -33,13 +33,13 @@ class Client:
 
     def recvall(self, sock, BUFF_SIZE=4096):
         '''Receives server response'''
-        data = b''
+        data = []
         while True:
             part = sock.recv(BUFF_SIZE)
-            data += part
-            if len(part) < BUFF_SIZE:  # if it has ended
+            if not part:
                 break
-        return data
+            data.append(part)
+        return b''.join(data)
 
     def handle_ping(self, req):
         '''Handles PING request and response'''

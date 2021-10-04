@@ -123,7 +123,7 @@ class Server:
             if len(self.tables) == 0:
                 TABLE = 1
             else:
-                TABLE = max(self.tables.keys()) + 1
+                TABLE = max(self.tables.values()) + 1
             self.tables[self.addr] = TABLE
         else:
             TABLE = self.tables[self.addr]
