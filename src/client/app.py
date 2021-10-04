@@ -5,14 +5,15 @@ import qrcode
 from pathlib import Path
 from flask import Flask, jsonify, render_template, request, session
 
+
+# Sets up the Flask application
 app = Flask(__name__)
 app.secret_key = 'Secret Key 123'
-
-PORT = 5000
 
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
+    '''Displays home page and adds items to cart'''
     if request.method == 'POST':
         qty, item_id = request.form.values()
         update_cart([(item_id, qty)], mode='add')
@@ -24,6 +25,7 @@ def home():
 
 @app.route("/cart", methods=['GET', 'POST'])
 def cart():
+    '''Display cart and update its contents based on user input'''
     # Initialise cart if not defined
     if 'cart' not in session:
         session['cart'] = {}
@@ -47,10 +49,13 @@ def cart():
 
 @app.route("/qr")
 def qr():
-    '''Note: Won't work if device on same network'''
+    '''
+    Generate QR code and render page
+    Note: Won't work if device on same network
+    '''
     try:
         ip = requests.get('https://api.ipify.org').text
-        img = qrcode.make(f'http://{ip}:{PORT}')
+        img = qrcode.make(f'http://{ip}:{app.PORT}')
         img.save(Path(__file__).parent / 'static' / 'images' / 'qr.png')
         return render_template('qr.html')
     except requests.exceptions.ConnectionError:
@@ -60,11 +65,13 @@ def qr():
 
 
 def get_menu():
+    '''Get menu from JSON file'''
     with open(Path(__file__).parent / 'menu.json') as menu_file:
         return json.load(menu_file)
 
 
 def generate_cart():
+    '''Helper function to add quantity from the cart to items'''
     cart = []
     for item_id, qty in session['cart'].items():
         item = get_item_from_id(item_id)
@@ -74,6 +81,7 @@ def generate_cart():
 
 
 def get_item_from_id(item_id):
+    '''Helper function to get item from id'''
     menu = get_menu()
     for item in menu:
         if item['id'] == item_id:
@@ -83,6 +91,7 @@ def get_item_from_id(item_id):
 
 
 def find_total_cost():
+    '''Find total cost of order'''
     total = 0
     for item_id, qty in session['cart'].items():
         price = get_item_from_id(item_id)['price']
@@ -116,4 +125,5 @@ def update_cart(data, mode='replace'):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.PORT = 5000
+    app.run(port=app.PORT)

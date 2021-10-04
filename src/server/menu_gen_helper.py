@@ -22,6 +22,7 @@ menu = [
 
 
 def add_images():
+    '''Adds images to menu items'''
     for item in menu:
         file_paths = list(Path(__file__).parent.glob(f'images/{item["id"]}.*'))
         if len(file_paths) == 0:
@@ -34,6 +35,7 @@ def add_images():
 
 
 def base64_img(file_path):
+    '''Helper function to convert image into base64 content'''
     with open(file_path, mode='rb') as image_file:
         img = image_file.read()
     if file_path.suffix in ['.jpeg', '.jpg', '.jfif', '.pjpeg', '.pjp']:
@@ -44,6 +46,7 @@ def base64_img(file_path):
 
 
 def main():
+    '''Runs SQL queries to clear table and insert the new menu data'''
     add_images()
     mydb = mysql.connector.connect(
         host="localhost",

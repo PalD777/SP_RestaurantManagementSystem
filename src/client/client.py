@@ -11,12 +11,14 @@ from app import app
 
 class Client:
     def __init__(self, host='127.0.0.1', port=9999, flask_app=None):
+        '''Initialises values'''
         self.HOST = host
         self.PORT = port
         self.flask_app = flask_app
         self.table = None
 
     def send(self, msg):
+        '''Connects to server and sends request'''
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((self.HOST, self.PORT))
@@ -30,6 +32,7 @@ class Client:
             raise e
 
     def recvall(self, sock, BUFF_SIZE=4096):
+        '''Receives server response'''
         data = b''
         while True:
             part = sock.recv(BUFF_SIZE)
@@ -39,6 +42,7 @@ class Client:
         return data
 
     def handle_ping(self, req):
+        '''Handles PING request and response'''
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             resp = self.send(b' '.join(req)).upper().split()
             resp_is_valid = len(
@@ -61,6 +65,7 @@ class Client:
             return 400, None
 
     def handle_menu(self, req):
+        '''Handles MENU request and response'''
         if len(req) == 2 and req[1].upper() == b'REQUEST':
             resp = self.send(b' '.join(req)).split(b' ')
             resp_is_valid = resp[0].upper(
@@ -91,6 +96,7 @@ class Client:
             return 400, None
 
     def handle_order(self, req):
+        '''Handles ORDER request and response'''
         if len(req) > 2 and req[1].upper() == b'SEND':
             req.insert(2, str(self.table).encode('utf-8'))
             resp = self.send(b' '.join(req)).split(b' ')
@@ -113,16 +119,19 @@ class Client:
             return 400, None
 
     def update_menu(self):
+        '''Function for updating menu'''
         print('[*] Updating menu')
         self.handle_menu(b'MENU REQUEST'.split())
 
     @staticmethod
     def error_warning(status, data):
+        '''Checks if the request and response handling encountered an error'''
         if status != 200:
             print(f"[!] ERROR - Encounted status {status}")
         return data
 
     def main(self):
+        '''Sends requests to appropriate functions for handling'''
         with open(Path(__file__).parent / 'requests.bin', 'w+b') as f:
             scheduler = BackgroundScheduler()
             scheduler.add_job(self.update_menu, 'interval', minutes=2)
@@ -149,10 +158,13 @@ class Client:
 
 
 def serve_app(app, port):
+    '''Hosts Flask App'''
+    app.PORT = port
     serve(app, port=port, threads=10)
 
 
 if __name__ == '__main__':
+    # Parses command line arguments to get parameters for execution
     parser = argparse.ArgumentParser(
         description='Run the client for S&P Restaurant App')
     parser.add_argument('-s', '--sip', '--server-ip', default='127.0.0.1',
@@ -162,8 +174,10 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--fp', '--f-port', '--flask-ip', default='5000',
                         type=int, help='Specifies Flask App port', dest='flask_port')
     args = parser.parse_args()
+    # Runs Flask App in a background thread
     flask_app = Thread(target=serve_app, args=(
         app, args.flask_port), daemon=True)
     flask_app.start()
+    # Run the client
     client = Client(args.ip, args.server_port, flask_app)
     client.main()
