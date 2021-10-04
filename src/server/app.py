@@ -34,7 +34,7 @@ class InnerLayout(GridLayout):
             btn = Button(text=f'ORDER {order_id}',
                          font_size=40,
                          background_color=[1, 0, 0, 3])
-            btn2 = Button(background_normal='cancel.png',
+            btn2 = Button(background_normal=str(Path(__file__).parent / 'images' / 'cancel.png'),
                           size_hint_x=None,
                           size=(144, 144))
 
@@ -71,8 +71,6 @@ class InnerLayout(GridLayout):
     def remove(self, item, btn, exitbtn):
         '''
         Callback function to delete a row on pressing cancel button
-        TODO
-        Update MySQL database to change has_served to true if pressed
         '''
         mydb = mysql.connector.connect(
             host="localhost",
@@ -140,6 +138,6 @@ def show_popup(bill_id, _):
     popupWindow.open()
 
 
-root = RestaurantServerApp()
-
-root.run()
+if __name__ == '__main__':
+    root = RestaurantServerApp()
+    root.run()

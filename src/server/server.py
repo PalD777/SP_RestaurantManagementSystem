@@ -1,15 +1,21 @@
+from threading import Thread
 import socket
-import base64, json
+import base64
+import json
 from pathlib import Path
+import argparse
 import mysql.connector
+
+
 class Server:
-    def __init__(self, port=9999):
+    def __init__(self, port=9999, ui_app=None):
         self.HOST = ''
         self.PORT = port
         self.tables = {}
         self.get_menu()
-    
-    def start(self, max_clients=128, timeout=10):
+        self.ui_app = ui_app
+
+    def listen(self, max_clients=128, timeout=10):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.HOST, self.PORT))
         self.sock.listen(max_clients)
@@ -89,19 +95,19 @@ class Server:
     def get_menu(self):
         '''should be list of dictionary preferably'''
         mydb = mysql.connector.connect(
-                host="localhost",
-                user="server",
-                password="SP12345",
-                database = "restaurant"
-            )
+            host="localhost",
+            user="server",
+            password="SP12345",
+            database="restaurant"
+        )
         mycursor = mydb.cursor()
         mycursor.execute("SELECT * FROM menu")
         myresult = mycursor.fetchall()
         self.menu = []
         for item in myresult:
-            self.menu.append({'id':item[0],'name':item[1],'desc':item[2],'price':float(item[3]),'img':item[4]})
+            self.menu.append({'id': item[0], 'name': item[1], 'desc': item[2], 'price': float(
+                item[3]), 'img': item[4]})
         return self.menu
-    
 
     def get_table(self):
         if self.addr not in self.tables:
@@ -123,11 +129,11 @@ class Server:
 
     def parse_orders(self, table, order):
         mydb = mysql.connector.connect(
-                host="localhost",
-                user="server",
-                password="SP12345",
-                database = "restaurant"
-            )
+            host="localhost",
+            user="server",
+            password="SP12345",
+            database="restaurant"
+        )
         mycursor = mydb.cursor()
         sql = "INSERT INTO orders (table_num, total, items) VALUES (%s, %s, %s)"
         total = 0
@@ -142,7 +148,7 @@ class Server:
                 'name': item['name'],
                 'qty': int(qty),
                 'price': item['price']
-                })
+            })
         mycursor.execute(sql, (table, total, json.dumps(items)))
         mydb.commit()
         return 200
@@ -150,8 +156,27 @@ class Server:
     def quit(self):
         self.sock.close()
 
-if __name__ == '__main__':
+
+def start_server():
     server = Server()
-    server.start()
+    server.listen()
     server.handle_conn()
     server.quit()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Run the server for S&P Restaurant App')
+    parser.add_argument('-u', '--ui', '--show-ui', action='store_true',
+                        help='Specifies whether to show UI', dest='ui')
+    args = parser.parse_args()
+    if args.ui:
+        server = Thread(target=start_server, daemon=True)
+        server.start()
+        import os
+        os.environ["KCFG_KIVY_LOG_LEVEL"] = "warning"
+        os.environ["KIVY_NO_ARGS"] = "1"
+        from app import RestaurantServerApp
+        RestaurantServerApp().run()
+    else:
+        start_server()
