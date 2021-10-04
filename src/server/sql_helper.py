@@ -1,6 +1,7 @@
 import mysql.connector
 from pathlib import Path
 import base64
+import argparse
 
 
 menu = [
@@ -45,7 +46,7 @@ def base64_img(file_path):
     return f'data:image/{suffix[1:]};base64,' + base64.b64encode(img).decode('utf-8')
 
 
-def main():
+def change_menu():
     '''Runs SQL queries to clear table and insert the new menu data'''
     add_images()
     mydb = mysql.connector.connect(
@@ -66,9 +67,34 @@ def main():
         val.append((item['id'], item['name'], item['desc'],
                    item['price'], item['img']))
     mycursor.executemany(sql, val)
-
     mydb.commit()
+    print('[*] Menu has been updated')
+
+
+def reset_orders():
+    '''Deletes all orders and resets auto increment'''
+    mydb = mysql.connector.connect(
+        host="localhost",
+        user="server",
+        password="SP12345",
+        database="restaurant"
+    )
+    mycursor = mydb.cursor()
+    # Clear all existing entries and reset auto increment
+    sql1 = "TRUNCATE TABLE orders"
+    mycursor.execute(sql1)
+    mydb.commit()
+    print('[*] Orders have been reset')
 
 
 if __name__ == "__main__":
-    main()
+    # Adds command line arg for choosing what to modify
+    parser = argparse.ArgumentParser(
+        description='Helper utility for modifying S&P Restaurant SQL Database')
+    parser.add_argument('target', choices=['menu', 'orders', 'both'], metavar='modification_target',
+                        help='Specifies what to modify. Possible values: menu, orders, both')
+    args = parser.parse_args()
+    if args.target in ['menu', 'both']:
+        change_menu()
+    if args.target in ['orders', 'both']:
+        reset_orders()
