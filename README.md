@@ -151,7 +151,7 @@ Create a schema `restaurant` and make sure the user that you are using to access
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-* To run restaurant server:
+* To run restaurant server (Make sure the specified port is open):
     ```
     python3 src/server/server.py [-h] [-u] [-p PORT]
 
@@ -160,7 +160,7 @@ Create a schema `restaurant` and make sure the user that you are using to access
       -u, --ui, --show-ui   Specifies whether to show UI containing unserved orders and a remove button
       -p PORT, --port PORT  Specifies a custom Server port [default: 9999]
     ```
-* To run the client:
+* To run the client (Make sure the specified port is open):
     ```
     python3 src/client/client.py [-h] [-s IP] [-p SERVER_PORT] [-f FLASK_PORT]
 
